@@ -1,0 +1,539 @@
+/**
+ *	NAME:  Abhigya Ghimire
+ *	ID:    A11628841
+ *	LOGIN: cs12wbk 
+ */
+
+package hw2;
+
+/**
+ * @author Abhigya Ghimire
+ * @date January 19, 2016
+ */
+import java.util.AbstractList;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
+
+/**
+ *  Title: class DoublyLinkedList12
+ *  Description: This class creates a DoublyLinkedList where a node points
+ *  			 to its previous node as well as its next node.
+ * */
+
+public class DoublyLinkedList12<E> extends AbstractList<E> {
+
+	private int nelems;
+	private Node head;
+	private Node tail;
+
+	protected class Node {
+		E data;
+		Node next;
+		Node prev;
+
+		/** Constructor to create singleton Node */
+		public Node(E element) {
+			data = element;
+			next = null;
+			prev = null;
+		}
+
+		/**
+		 * Constructor to create singleton link it between previous and next
+		 * 
+		 * @param element
+		 *            Element to add, can be null
+		 * @param prevNode
+		 *            predecessor Node, can be null
+		 * @param nextNode
+		 *            successor Node, can be null
+		 */
+		public Node(E element, Node prevNode, Node nextNode) {
+			data = element;
+			// Connecting the nodes after creation of a new one
+			prevNode.next = this;
+			this.prev = prevNode;
+			this.next = nextNode;
+			nextNode.prev = this;
+		}
+
+		/** Remove this node from the list. Update previous and next nodes */
+		public void remove() {
+			// Basically cuts the "pointers"
+			Node newLeft = this.prev;
+			Node newRight = this.next;
+			newLeft.next = newRight;
+			newRight.prev = newLeft;
+			// Garbage collector takes away the node.
+		}
+
+		/**
+		 * Set the previous node in the list 
+		 * Updates the list with new pointers
+		 * @param p
+		 *            new previous node
+		 */
+		public void setPrev(Node p) {
+			Node oldPrev = this.getPrev();
+			oldPrev.next = p;
+			p.prev = oldPrev;
+			p.next = this;
+			this.prev = p;
+		}
+
+		/**
+		 * Set the next node in the list
+		 * Updates the list with new pointers
+		 * @param n
+		 *            new next node
+		 */
+		public void setNext(Node n) {
+			Node oldNext = this.getNext();
+			oldNext.prev = n;
+			n.prev = this;
+			n.next = oldNext;
+			this.next = n;
+		}
+
+		/**
+		 * Set the element
+		 * @param e
+		 *            new element
+		 */
+		public void setElement(E e) {
+			this.data = e;
+		}
+
+		/** Accessor to get the next Node in the list */
+		public Node getNext() {
+			return this.next;
+		}
+
+		/** Accessor to get the prev Node in the list */
+		public Node getPrev() {
+			return this.prev;
+		}
+
+		/** Accessor to get the Nodes Element */
+		public E getElement() {
+			return this.data;
+		}
+	}
+
+	/** ListIterator implementation */
+	protected class MyListIterator implements ListIterator<E> {
+
+		private boolean forward;
+		private boolean canRemove;
+		private Node left, right; // Cursor sits between these two nodes
+		private int idx; // Tracks current position. what next() would
+							// return
+
+		/**
+		 * Constructs the iterator with: 
+		 * left, right, idx, canRemove, and forward.
+		 *  
+		 * The left pointer points to the head and the right points to
+		 * what is right after head.
+		 */
+		public MyListIterator() {
+			// Left at head and right at next to head
+			// So we won't skip the first node.
+			left = head;
+			right = head.next;
+			idx = 0;
+			canRemove = false;
+			forward = true;
+		}
+
+		/**
+		 * Adds a node in between left and right
+		 * and updates the pointers.
+		 */
+		@Override
+		public void add(E e) throws NullPointerException {
+			if (e == null)
+				throw new NullPointerException();
+			// Add a new node between left and right.
+			
+
+			nelems++;
+			canRemove = false;
+		}
+
+		/**
+		 * Checks if there is a next Node or not.
+		 * @return boolean whether there is a next node or not
+		 */
+		@Override
+		public boolean hasNext() {
+			return (idx < nelems);
+		}
+
+		/**
+		 * Checks if there is a previous Node or not.
+		 * @return boolean whether there is a previous node or not
+		 */
+		@Override
+		public boolean hasPrevious() {
+			return (idx > 0);
+		}
+
+		/**
+		 * Shift the iterator to the right by one index. Updates left and right
+		 * pointers of the iterator.
+		 * @return the element that the right pointer was previously pointing.
+		 */
+		@Override
+		public E next() throws NoSuchElementException {
+			if (!hasNext())
+				throw new NoSuchElementException();
+			canRemove = true;
+			forward = true;
+			left = right;// switching new left to previous right
+			E elem = right.getElement();
+			right = right.next; // switching right to the next node
+			idx++;
+			return elem;
+		}
+
+		/**
+		 * Get the next index of the iterator
+		 * @return the next index of the iterator
+		 */
+		@Override
+		public int nextIndex() {
+			if (hasNext())
+				return idx;
+			// Just in case the index is out of bounds.
+			else
+				throw new IndexOutOfBoundsException();
+		}
+
+		/**
+		 * Shifts the iterator to the left by one index. Updates left and right
+		 * pointers of the iterator.
+		 * @return the element that the left pointer was previously pointing.
+		 */
+		@Override
+		public E previous() throws NoSuchElementException {
+			if (!hasPrevious())
+				throw new NoSuchElementException();
+			canRemove = true;
+			forward = false;
+			E elem = left.getElement();
+			right = left;
+			left = left.prev;
+			idx--;
+			return elem;
+		}
+
+		/**
+		 * Gets the index left of where iterator is.
+		 * @return The previous index of the iterator.
+		 */
+		@Override
+		public int previousIndex() {
+			if (hasPrevious())
+				return idx - 1;
+			// Just in case the index is out of bounds.
+			else
+				throw new IndexOutOfBoundsException();
+		}
+
+		/**
+		 * Checks if the user used next() or previous() 
+		 * And then removes the element returned by next or previous. 
+		 * Can only be used after using next() or previous().
+		 */
+		@Override
+		public void remove() throws IllegalStateException {
+			// If the user hits next()
+			if (forward == true && canRemove == true) {
+				left.remove();
+				nelems--;
+				idx--;
+			}
+			// If the user hits previous()
+			else if (forward == false && canRemove == true) {
+				right.remove();
+				nelems--;
+			}
+			// If user does not use any next() or previous()
+			// before removing.
+			else {
+				throw new IllegalStateException();
+			}
+			canRemove = false;
+		}
+
+		/**
+		 * Sets the returned element by next() or previous() to the users input.
+		 */
+		@Override
+		public void set(E e) throws NullPointerException, IllegalStateException {
+			if (e == null) // If null data was given
+				throw new NullPointerException();
+
+			if (forward == true && canRemove == true) { // If next()
+				if (left == null)
+					throw new IllegalStateException();
+				left.setElement(e);
+
+			} else if (forward == false && canRemove == true) { // If previous()
+				if (right == null)
+					throw new IllegalStateException();
+				right.setElement(e);
+			}
+		}
+
+	}
+
+	// Implementation of the DoublyLinkedList12 Class
+
+	/**
+	 * Only 0-argument constructor is define Creates dummy nodes for head and
+	 * tail.
+	 */
+	public DoublyLinkedList12() {
+		head = new Node(null); // Dummy head node
+		tail = new Node(null); // Dummy tail node
+		// General case with no elements
+		head.next = tail;
+		tail.prev = head;
+		nelems = 0;
+	}
+
+	/**
+	 * Gets the size of the Doubly Linked List
+	 * 
+	 * @return the size of the Doubly Linked List
+	 */
+	@Override
+	public int size() {
+		return nelems;
+	}
+
+	/**
+	 * Gets the node in the given index and retrieves its data
+	 * 
+	 * @param index
+	 *            index of the element
+	 * @return returns the element of the Doubly Linked List in the given index.
+	 */
+	@Override
+	public E get(int index) throws IndexOutOfBoundsException {
+		if (index >= size())
+			throw new IndexOutOfBoundsException();
+		Node cursor = getNth(index);
+		return cursor.data;
+	}
+
+	@Override
+	/**
+	 * Add an element to the list
+	 * 
+	 * @param index
+	 *            where in the list to add
+	 * @param data
+	 *            data to add
+	 * @throws IndexOutOfBoundsException
+	 * @throws NullPointerException
+	 */
+	public void add(int index, E data) 
+			throws IndexOutOfBoundsException, NullPointerException {
+		if (data == null) {
+			throw new NullPointerException();
+		}
+		if (index > size()) {
+			throw new IndexOutOfBoundsException();
+		}
+		// getting the cursor and inserting a node left of the cursor.
+		Node cursor = getNth(index);
+		
+//aDD A new node betweeen cursor.prev and cursor
+
+
+		nelems++;
+	}
+
+	/**
+	 * Add an element to the end of the list
+	 * 
+	 * @param data
+	 *            data to add
+	 * @throws NullPointerException
+	 */
+	public boolean add(E data) throws NullPointerException {
+		if (data == null)
+			throw new NullPointerException();
+//Add a new node between tail.prev and tail
+
+		nelems++;
+		return true;
+	}
+
+	/**
+	 * Set the element at an index in the list
+	 * 
+	 * @param index
+	 *            where in the list to add
+	 * @param data
+	 *            data to add
+	 * @return element that was previously at this index.
+	 * @throws IndexOutOfBoundsException
+	 * @throws NullPointerException
+	 */
+	public E set(int index, E data) throws IndexOutOfBoundsException, NullPointerException {
+		if (index > size())
+			throw new IndexOutOfBoundsException();
+		if (data == null)
+			throw new NullPointerException();
+
+		E elem = get(index);
+		Node cursor = getNth(index);
+		cursor.setElement(data); // Overwriting the data
+
+		// Returning the data that was PREVIOUSLY at the index
+		return elem;
+	}
+
+	/**
+	 * Remove the element at an index in the list
+	 * 
+	 * @param index
+	 *            where in the list to add
+	 * @return element the data found
+	 * @throws IndexOutOfBoundsException
+	 */
+	public E remove(int index) throws IndexOutOfBoundsException {
+		if (index > size())
+			throw new IndexOutOfBoundsException();
+		Node cursor = getNth(index);
+		E elem = get(index);
+		cursor.remove(); // Remove the node
+		nelems--;
+		return elem;
+	}
+
+	/** Clear the DoublyLinked list */
+	public void clear() {
+		head = null;
+		tail = null;
+		nelems = 0;
+	}
+
+	/**
+	 * Determine if the list empty
+	 * 
+	 * @return true if empty, false otherwise
+	 */
+	public boolean isEmpty() {
+		return size() == 0;
+	}
+
+	/**
+	 * Retrieves and returns the node at the given index. It is a helper method
+	 * to get the Node at the Nth index.
+	 * 
+	 * @param index
+	 *            index of the list stored in DoubleyLinkedList
+	 * @return the node of the given Index
+	 */
+	private Node getNth(int index) {
+		Node cursor = head.next;
+		// Loop through the whole list
+		for (int i = 0; i < index; i++) {
+			cursor = cursor.next;
+		} // return the node that user asks for
+		return cursor;
+	}
+
+	/**
+	 * Creates an iterator for the DoublyLinkedList
+	 * 
+	 * @return a new iterator object
+	 */
+	public Iterator<E> iterator() {
+		return new MyListIterator();
+	}
+
+	/**
+	 * Creates an iterator for the DoublyLinkedList
+	 * 
+	 * @return a new iterator object
+	 */
+	public ListIterator<E> listIterator() {
+		return new MyListIterator();
+	}
+
+	/**
+	 * Takes a DoublyLinkeList and reverses it and concatenates it without
+	 * changing the original file.
+	 * 
+	 * @param list
+	 *            list to be reversed and concatenated.
+	 */
+	public void reverseAndConcat(DoublyLinkedList12<E> list) {
+		DoublyLinkedList12<E> newList = this;
+		// Getting the data from the original
+		for (int i = 0; i < list.size(); i++) {
+			newList.add(list.get(i));
+		}
+		// Reversing and concatenating
+		for (int i = newList.size() - 1; i >= 0; i--) {
+			newList.add(newList.get(i));
+		}
+	}
+
+	/**
+	 * ALTERNATIVE METHOD FOR reverseAndConcat
+	 * Takes a DoublyLinkeList, reverses it and 
+	 * concatenates it without changing the original file.
+	 *
+	 * @return Returns a new list with the reversed and concatenated data.
+	 */
+	public DoublyLinkedList12<E> reversePlusConcat() throws NullPointerException{
+		DoublyLinkedList12<E> newList = new DoublyLinkedList12<E>();
+		DoublyLinkedList12<E> original = this;
+		// Getting the data from the original
+		for (int i = 0; i < original.size(); i++) {
+			newList.add(original.get(i));
+		}
+		// Reversing and concatenating
+		for (int i = newList.size() - 1; i >= 0; i--) {
+			newList.add(newList.get(i));
+		}
+		return newList; // Returns the new processed list.
+	}
+	
+	/* WOOHOO!! IT WORKS!!! EXTRA CREDIT!! WOOHOO!! 
+	public static void main(String[] args){
+		DoublyLinkedList12<Integer> test = new DoublyLinkedList12<Integer>();
+		test.add(5);
+		test.add(3);
+		test.add(1);
+		DoublyLinkedList12<Integer> productFile = test.reversePlusConcat();
+		for(int i = 0; i<productFile.size(); i++)
+		{
+			System.out.print(productFile.get(i)+", ");
+		}
+	}
+	
+	*/
+	/*
+	 * public Iterator<E> QQQiterator() 
+	 * { 
+	 * return new MyListIterator(); 
+	 * }
+	 *  
+	 * public ListIterator<E> QQQlistIterator() 
+	 * {
+	 *  return new MyListIterator(); 
+	 *  }
+	 */
+}
+
+// VIM: set the tabstop and shiftwidth to 4 
+// vim:tw=78:ts=4:et:sw=4
